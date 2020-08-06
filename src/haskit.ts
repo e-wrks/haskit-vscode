@@ -111,6 +111,14 @@ export class EdhCodelensProvider implements vscode.CodeLensProvider {
             const effLine = line.text.trimStart();
             if (effLine.startsWith("# %%") || effLine.startsWith("# In[")) {
                 codeLenses.push(new vscode.CodeLens(
+                    new vscode.Range(lineIdx, 0, beforeLineIdx, 0), {
+                    "title": "Run Cell",
+                    "command": "edh.SendToEdhTermSession",
+                    "arguments": [
+                        document, lineIdx, beforeLineIdx
+                    ]
+                }));
+                codeLenses.push(new vscode.CodeLens(
                     new vscode.Range(lineIdx, 0, lineIdx + 1, 0), {
                     "title": "Run Above",
                     "command": "edh.SendToEdhTermSession",
@@ -124,14 +132,6 @@ export class EdhCodelensProvider implements vscode.CodeLensProvider {
                     "command": "edh.SendToEdhTermSession",
                     "arguments": [
                         document, lineIdx, -1
-                    ]
-                }));
-                codeLenses.push(new vscode.CodeLens(
-                    new vscode.Range(lineIdx, 0, beforeLineIdx, 0), {
-                    "title": "Run Cell",
-                    "command": "edh.SendToEdhTermSession",
-                    "arguments": [
-                        document, lineIdx, beforeLineIdx
                     ]
                 }));
                 beforeLineIdx = lineIdx;
