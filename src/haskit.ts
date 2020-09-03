@@ -66,10 +66,10 @@ export async function newEdhTerminal(cmdl?: string): Promise<void> {
     });
     qp.items = ([enteredCmd] as (AsEnteredCmd | OptionCmd)[]).concat(optCmds);
     qp.onDidAccept(() => {
-        const cmdl = qp.value;
+        const sel = qp.selectedItems[0];
         qp.hide();
         qp.dispose();
-        createEdhTerminal(cmdl ? parseCmdLine(cmdl) : defaultCmdl);
+        createEdhTerminal(sel.label ? parseCmdLine(sel.label) : defaultCmdl);
     });
     qp.show();
 }
