@@ -166,19 +166,19 @@ export class EdhCodelensProvider implements vscode.CodeLensProvider {
         }
         if (cellCnt > 0 && beforeLineIdx > 0) {
             codeLenses.push(new vscode.CodeLens(
-                new vscode.Range(0, 0, 0, 0), {
-                "title": "Run All",
-                "command": "edh.SendToEdhTermSession",
-                "arguments": [
-                    document, 0, -1
-                ]
-            }));
-            codeLenses.push(new vscode.CodeLens(
                 new vscode.Range(0, 0, beforeLineIdx, 0), {
                 "title": "Run Cell",
                 "command": "edh.SendToEdhTermSession",
                 "arguments": [
                     document, 0, beforeLineIdx
+                ]
+            }));
+            codeLenses.push(new vscode.CodeLens(
+                new vscode.Range(0, 0, 0, 0), {
+                "title": "Run All",
+                "command": "edh.SendToEdhTermSession",
+                "arguments": [
+                    document, 0, -1
                 ]
             }));
         }
