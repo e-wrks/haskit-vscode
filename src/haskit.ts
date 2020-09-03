@@ -144,22 +144,33 @@ export class EdhCodelensProvider implements vscode.CodeLensProvider {
                         document, lineIdx, beforeLineIdx
                     ]
                 }));
-                codeLenses.push(new vscode.CodeLens(
-                    new vscode.Range(lineIdx, 0, lineIdx + 1, 0), {
-                    "title": "Run Above",
-                    "command": "edh.SendToEdhTermSession",
-                    "arguments": [
-                        document, 0, lineIdx
-                    ]
-                }));
-                codeLenses.push(new vscode.CodeLens(
-                    new vscode.Range(lineIdx, 0, lineIdx + 1, 0), {
-                    "title": "Run Below",
-                    "command": "edh.SendToEdhTermSession",
-                    "arguments": [
-                        document, lineIdx, -1
-                    ]
-                }));
+                if (lineIdx > 0) {
+                    codeLenses.push(new vscode.CodeLens(
+                        new vscode.Range(lineIdx, 0, lineIdx + 1, 0), {
+                        "title": "Run Above",
+                        "command": "edh.SendToEdhTermSession",
+                        "arguments": [
+                            document, 0, lineIdx
+                        ]
+                    }));
+                    codeLenses.push(new vscode.CodeLens(
+                        new vscode.Range(lineIdx, 0, lineIdx + 1, 0), {
+                        "title": "Run Below",
+                        "command": "edh.SendToEdhTermSession",
+                        "arguments": [
+                            document, lineIdx, -1
+                        ]
+                    }));
+                } else {
+                    codeLenses.push(new vscode.CodeLens(
+                        new vscode.Range(0, 0, 0, 0), {
+                        "title": "Run All",
+                        "command": "edh.SendToEdhTermSession",
+                        "arguments": [
+                            document, 0, -1
+                        ]
+                    }));
+                }
                 beforeLineIdx = lineIdx;
                 cellCnt++;
             }
