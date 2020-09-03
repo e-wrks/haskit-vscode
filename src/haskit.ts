@@ -23,7 +23,7 @@ function isEdhTerminal(term: vscode.Terminal): boolean {
     return false;
 }
 
-export async function newEdhTerminal(cmdl?: string): Promise<void> {
+export async function newEdhTerminal(cmdl?: string): Promise<boolean> {
     function parseCmdLine(cmdl: string): string[] {
         // todo honor string quotes ?
         const cmds = cmdl.split(/\s+/).filter(arg => !!arg);
@@ -31,8 +31,7 @@ export async function newEdhTerminal(cmdl?: string): Promise<void> {
     }
 
     if (undefined !== cmdl) {
-        createEdhTerminal(parseCmdLine(cmdl));
-        return;
+        return null !== createEdhTerminal(parseCmdLine(cmdl));
     }
 
     const wsCmdls: Array<string> = [];
@@ -53,25 +52,40 @@ export async function newEdhTerminal(cmdl?: string): Promise<void> {
     const optCmds: (AsEnteredCmd | OptionCmd)[] = Array.from(wsCmdls,
         cmdl => new OptionCmd(cmdl, 'Run: epm x ' + cmdl));
     optCmds.push(
-        new OptionCmd("stack run", "Build & Run with Stack"),
-        // new OptionCmd("cabal run hski", 'Build & Run with Cabal'),
+        new OptionCmd("stack run", "Build & Run default target"),
+        // cabal has no concept of default target, we can not supply a
+        // working option without knowning what's opened in vscode
+        // new OptionCmd("cabal run xxx", 'Build & Run with Cabal'),
     );
-    const qp = vscode.window.createQuickPick<AsEnteredCmd | OptionCmd>();
-    qp.title = "New Đ Terminal running command:";
-    qp.placeholder = defaultCmdl.join(' ');
-    qp.onDidChangeValue(e => {
-        enteredCmd.label = e;
-        enteredCmd.description = 'Run: epm x ' + e;
+
+    return await new Promise((resolve, reject) => {
+        const qp = vscode.window.createQuickPick<AsEnteredCmd | OptionCmd>();
+        qp.title = "New Đ Terminal running command:";
+        qp.placeholder = defaultCmdl.join(' ');
+        qp.onDidChangeValue(e => {
+            enteredCmd.label = e;
+            enteredCmd.description = 'Run: epm x ' + e;
+            qp.items = ([enteredCmd] as (AsEnteredCmd | OptionCmd)[]).concat(optCmds);
+        });
         qp.items = ([enteredCmd] as (AsEnteredCmd | OptionCmd)[]).concat(optCmds);
+        qp.onDidAccept(() => {
+            const sel = qp.selectedItems;
+            try {
+                if (sel.length > 0) {
+                    const opt = sel[0];
+                    const term = createEdhTerminal(opt.label ? parseCmdLine(opt.label) : defaultCmdl);
+                    resolve(null !== term);
+                }
+                resolve(false);
+            } catch (exc) {
+                reject(exc);
+            } finally {
+                qp.hide();
+                qp.dispose();
+            }
+        });
+        qp.show();
     });
-    qp.items = ([enteredCmd] as (AsEnteredCmd | OptionCmd)[]).concat(optCmds);
-    qp.onDidAccept(() => {
-        const sel = qp.selectedItems[0];
-        qp.hide();
-        qp.dispose();
-        createEdhTerminal(sel.label ? parseCmdLine(sel.label) : defaultCmdl);
-    });
-    qp.show();
 }
 
 class AsEnteredCmd implements vscode.QuickPickItem {
@@ -173,8 +187,8 @@ export class EdhCodelensProvider implements vscode.CodeLensProvider {
 
 }
 
-export function sendEdhSourceToTerminal(document?: vscode.TextDocument,
-    sinceLineIdx?: number, beforeLineIdx?: number): void {
+export async function sendEdhSourceToTerminal(document?: vscode.TextDocument,
+    sinceLineIdx?: number, beforeLineIdx?: number): Promise<void> {
 
     let sourceText: null | string = null;
     if (!document || undefined === sinceLineIdx || undefined === beforeLineIdx) {
@@ -215,7 +229,10 @@ export function sendEdhSourceToTerminal(document?: vscode.TextDocument,
             sinceLineIdx, 0, beforeLineIdx, 0));
     }
 
-    const term = prepareEdhTerminal();
+    const term = await prepareEdhTerminal();
+    if (null === term) {
+        return; // cancelled
+    }
     term.sendText("%%paste "
         + lineCnt // lineCnt
         + ' ' + (sinceLineIdx + 1) // lineNo
@@ -223,13 +240,15 @@ export function sendEdhSourceToTerminal(document?: vscode.TextDocument,
         + '\n' + sourceText, true);
 }
 
-export function prepareEdhTerminal(): vscode.Terminal {
-    let term = vscode.window.activeTerminal;
-    if (term && isEdhTerminal(term)) return term;
-    for (term of vscode.window.terminals) {
-        if (isEdhTerminal(term)) return term;
+export async function prepareEdhTerminal(): Promise<null | vscode.Terminal> {
+    for (; ;) {
+        let term = vscode.window.activeTerminal;
+        if (term && isEdhTerminal(term)) return term;
+        for (term of vscode.window.terminals) {
+            if (isEdhTerminal(term)) return term;
+        }
+        if (! await newEdhTerminal()) {
+            return null; // cancelled
+        }
     }
-    const cmds = vscode.workspace.getConfiguration(
-        "haskit.shell").get("cmd", ["hski"]);
-    return createEdhTerminal(cmds);
 }

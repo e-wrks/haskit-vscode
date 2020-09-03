@@ -35,15 +35,7 @@
         ],
         "configuration": {
             "title": "HaskIt",
-            "properties": {
-                "haskit.shell.cmd": {
-                    "description": "Đ (Edh) Shell Command",
-                    "type": "array",
-                    "default": [
-                        "hski"
-                    ]
-                }
-            }
+            "properties": {}
         }
     },
     "scripts": {
