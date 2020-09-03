@@ -1,6 +1,7 @@
 
 import * as vscode from 'vscode';
 
+import { TextDecoder } from 'util';
 
 const EdhTermPrefix = "Đ Session - ";
 
@@ -22,7 +23,7 @@ function isEdhTerminal(term: vscode.Terminal): boolean {
     return false;
 }
 
-export function newEdhTerminal(cmdl?: string): void {
+export async function newEdhTerminal(cmdl?: string): Promise<void> {
     function parseCmdLine(cmdl: string): string[] {
         // todo honor string quotes ?
         const cmds = cmdl.split(/\s+/).filter(arg => !!arg);
@@ -34,34 +35,41 @@ export function newEdhTerminal(cmdl?: string): void {
         return;
     }
 
-    const enteredCmd = new AsEnteredCmd();
-    const stackCmd = new TemplateCmd("stack run ", "Build & Run with Stack");
-    const cabalCmd = new TemplateCmd("cabal run hski", 'Build & Run with Cabal');
-    const qp = vscode.window.createQuickPick<AsEnteredCmd | TemplateCmd>();
+    const wsCmdls: Array<string> = [];
+    const wsCfgs = await vscode.workspace.findFiles('haskit.json');
+    for (const cfgFile of wsCfgs) {
+        const cfgUtf8 = await vscode.workspace.fs.readFile(cfgFile);
+        const cfgJson = JSON.parse(new TextDecoder().decode(cfgUtf8));
+        const cmdls = cfgJson['edh.terminal.cmdl'];
+        if (cmdls instanceof Array) {
+            wsCmdls.push(...cmdls);
+        } else if ('string' === typeof cmdls) {
+            wsCmdls.push(cmdls);
+        }
+    }
+
+    const defaultCmdl: Array<string> = wsCmdls.length < 1 ? ['hski'] : [wsCmdls[0]];
+    const enteredCmd = new AsEnteredCmd('Run: epm x ' + defaultCmdl.join(' '));
+    const optCmds: (AsEnteredCmd | OptionCmd)[] = Array.from(wsCmdls,
+        cmdl => new OptionCmd(cmdl, 'Run: epm x ' + cmdl));
+    optCmds.push(
+        new OptionCmd("stack run", "Build & Run with Stack"),
+        // new OptionCmd("cabal run hski", 'Build & Run with Cabal'),
+    );
+    const qp = vscode.window.createQuickPick<AsEnteredCmd | OptionCmd>();
     qp.title = "New Đ Terminal running command:";
-    qp.placeholder = "hski";
+    qp.placeholder = defaultCmdl.join(' ');
     qp.onDidChangeValue(e => {
         enteredCmd.label = e;
         enteredCmd.description = 'Run: epm x ' + e;
-        qp.items = [enteredCmd, stackCmd, cabalCmd];
+        qp.items = ([enteredCmd] as (AsEnteredCmd | OptionCmd)[]).concat(optCmds);
     });
-    qp.canSelectMany = true;
-    qp.items = [enteredCmd, stackCmd, cabalCmd];
-    qp.onDidChangeSelection(sels => {
-        for (const sel of sels) {
-            if (sel instanceof TemplateCmd) {
-                enteredCmd.label = sel.label;
-                enteredCmd.description = 'Run: epm x ' + enteredCmd.label;
-            }
-        }
-        qp.items = [enteredCmd, stackCmd, cabalCmd];
-        qp.value = enteredCmd.label;
-    });
+    qp.items = ([enteredCmd] as (AsEnteredCmd | OptionCmd)[]).concat(optCmds);
     qp.onDidAccept(() => {
         const cmdl = qp.value;
         qp.hide();
         qp.dispose();
-        createEdhTerminal(cmdl ? parseCmdLine(cmdl) : ['hski']);
+        createEdhTerminal(cmdl ? parseCmdLine(cmdl) : defaultCmdl);
     });
     qp.show();
 }
@@ -71,11 +79,15 @@ class AsEnteredCmd implements vscode.QuickPickItem {
     alwaysShow = true;
 
     label = '';
-    description = 'Run: epm x hski';
+    description = '';
+
+    constructor(description: string) {
+        this.description = description;
+    }
 
 }
 
-class TemplateCmd implements vscode.QuickPickItem {
+class OptionCmd implements vscode.QuickPickItem {
 
     alwaysShow = true;
 
