@@ -132,10 +132,12 @@ export class EdhCodelensProvider implements vscode.CodeLensProvider {
         let cellCnt = 0;
         const codeLenses = [];
         let beforeLineIdx = document.lineCount;
+        let beforeBlockIdx = beforeLineIdx;
         for (let lineIdx = beforeLineIdx - 1; lineIdx >= 0; lineIdx--) {
             const line = document.lineAt(lineIdx);
             const effLine = line.text.trimStart();
             if (effLine.startsWith("# %%") || effLine.startsWith("# In[")) {
+                // a code cell
                 codeLenses.push(new vscode.CodeLens(
                     new vscode.Range(lineIdx, 0, beforeLineIdx, 0), {
                     "title": "Run Cell",
@@ -171,6 +173,58 @@ export class EdhCodelensProvider implements vscode.CodeLensProvider {
                         ]
                     }));
                 }
+                beforeLineIdx = lineIdx;
+                cellCnt++;
+            } else if (effLine.startsWith("# %{")) {
+                // a block-starting cell
+                codeLenses.push(new vscode.CodeLens(
+                    new vscode.Range(lineIdx, 0, lineIdx + 1, 0), {
+                    "title": "Run Block",
+                    "command": "edh.SendToEdhTermSession",
+                    "arguments": [
+                        document, lineIdx, beforeBlockIdx
+                    ]
+                }));
+                if (lineIdx > 0) {
+                    codeLenses.push(new vscode.CodeLens(
+                        new vscode.Range(lineIdx, 0, lineIdx + 1, 0), {
+                        "title": "Run Above",
+                        "command": "edh.SendToEdhTermSession",
+                        "arguments": [
+                            document, 0, lineIdx
+                        ]
+                    }));
+                    codeLenses.push(new vscode.CodeLens(
+                        new vscode.Range(lineIdx, 0, lineIdx + 1, 0), {
+                        "title": "Run Below",
+                        "command": "edh.SendToEdhTermSession",
+                        "arguments": [
+                            document, lineIdx, -1
+                        ]
+                    }));
+                } else {
+                    codeLenses.push(new vscode.CodeLens(
+                        new vscode.Range(0, 0, 0, 0), {
+                        "title": "Run All",
+                        "command": "edh.SendToEdhTermSession",
+                        "arguments": [
+                            document, 0, -1
+                        ]
+                    }));
+                }
+                beforeLineIdx = lineIdx;
+                cellCnt++;
+            } else if (effLine.startsWith("# %}")) {
+                // a block-ending cell
+                beforeBlockIdx = beforeLineIdx;
+                codeLenses.push(new vscode.CodeLens(
+                    new vscode.Range(lineIdx, 0, lineIdx + 1, 0), {
+                    "title": "Run Rest",
+                    "command": "edh.SendToEdhTermSession",
+                    "arguments": [
+                        document, beforeBlockIdx, -1
+                    ]
+                }));
                 beforeLineIdx = lineIdx;
                 cellCnt++;
             }
