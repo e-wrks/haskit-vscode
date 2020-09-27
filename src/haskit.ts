@@ -175,6 +175,10 @@ export class EdhCodelensProvider implements vscode.CodeLensProvider {
                 }
                 beforeLineIdx = lineIdx;
                 cellCnt++;
+            } else if (effLine.startsWith("# %#")) {
+                // a dummy cell, like comments
+                beforeLineIdx = lineIdx;
+                cellCnt++;
             } else if (effLine.startsWith("# %{")) {
                 // a block-starting cell
                 codeLenses.push(new vscode.CodeLens(
