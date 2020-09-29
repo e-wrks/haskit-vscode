@@ -19,7 +19,9 @@
         "Programming Languages"
     ],
     "activationEvents": [
-        "onLanguage:edh"
+        "onLanguage:edh",
+        "onCommand:edh.NewEdhTermSession",
+        "onCommand:edh.SendToEdhTermSession"
     ],
     "main": "./out/extension",
     "contributes": {
