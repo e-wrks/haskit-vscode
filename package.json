@@ -11,7 +11,7 @@
     "extensionDependencies": [
         "ComplYue.edh-vscode-pack"
     ],
-    "version": "0.5.0",
+    "version": "0.5.1",
     "engines": {
         "vscode": "^1.40.0"
     },
