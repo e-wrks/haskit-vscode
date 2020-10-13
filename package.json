@@ -6,7 +6,7 @@
     },
     "name": "haskit-vscode",
     "displayName": "HaskIt Đ - Haskell Software, Fast Iterations",
-    "description": "Quality from Haskell, Speed-to-Market from Đ (Edh)",
+    "description": "Get Quality from Haskell, Get Bullshit Done Quickly with Đ (Edh)",
     "preview": true,
     "extensionDependencies": [
         "ComplYue.edh-vscode-pack"

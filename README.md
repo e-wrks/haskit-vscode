@@ -1,4 +1,4 @@
-# HaskIt Đ (Preview) - Haskell Software, Fast Iterations
+# HaskIt Đ - Haskell Software, Fast Iterations
 
 > Get Quality from
 > [Haskell](https://haskell.org),
