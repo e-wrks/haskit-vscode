@@ -35,10 +35,19 @@
                 "title": "Edh: Execute Đ Source"
             }
         ],
-        "configuration": {
-            "title": "HaskIt",
-            "properties": {}
-        }
+        "configuration": [
+            {
+                "title": "HaskIt",
+                "properties": {
+                    "Edh.Sessions.debug": {
+                        "type": "boolean",
+                        "default": false,
+                        "scope": "window",
+                        "description": "Debug Đ (Edh) Sessions"
+                    }
+                }
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "yarn run compile",

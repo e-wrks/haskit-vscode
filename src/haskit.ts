@@ -6,9 +6,18 @@ import { TextDecoder } from 'util';
 const EdhTermPrefix = "Đ Session - ";
 
 function createEdhTerminal(cmds: string[]): vscode.Terminal {
+    const cfg = vscode.workspace.getConfiguration();
+    const debugEdh = !!cfg.get("Edh.Sessions.debug");
+
+    const cmdl = debugEdh
+        ? ['EDH_LOG_LEVEL=DEBUG',
+            'epm', 'x']
+        : [
+            'epm', 'x'];
+
     const term = vscode.window.createTerminal(
         EdhTermPrefix + cmds.join(' '),
-        "/usr/bin/env", ["epm", "x"].concat(cmds),
+        "/usr/bin/env", cmdl.concat(cmds),
     );
     term.show();
     return term;
