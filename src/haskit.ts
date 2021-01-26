@@ -56,7 +56,7 @@ export async function newEdhTerminal(cmdl?: string): Promise<boolean> {
         }
     }
 
-    const defaultCmdl: Array<string> = wsCmdls.length < 1 ? ['hski'] : [wsCmdls[0]];
+    const defaultCmdl: Array<string> = wsCmdls.length < 1 ? ['hski'] : parseCmdLine(wsCmdls[0]);
     const enteredCmd = new AsEnteredCmd('Run: epm x ' + defaultCmdl.join(' '));
     const optCmds: (AsEnteredCmd | OptionCmd)[] = Array.from(wsCmdls,
         cmdl => new OptionCmd(cmdl, 'Run: epm x ' + cmdl));
