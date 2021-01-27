@@ -17,8 +17,11 @@ function createEdhTerminal(cmds: string[]): vscode.Terminal {
 
     const term = vscode.window.createTerminal(
         EdhTermPrefix + cmds.join(' '),
-        "/usr/bin/env", cmdl.concat(cmds),
+        // shellPath/shellArgs not supported by Theia yet
+        // "/usr/bin/env", cmdl.concat(cmds),
     );
+    // workaround https://github.com/eclipse-theia/theia/issues/6574
+    term.sendText(cmdl.concat(cmds).join(' '));
     term.show();
     return term;
 }
