@@ -21,7 +21,7 @@ function createEdhTerminal(cmds: string[]): vscode.Terminal {
         // "/usr/bin/env", cmdl.concat(cmds),
     );
     // workaround https://github.com/eclipse-theia/theia/issues/6574
-    term.sendText(cmdl.concat(cmds).join(' '));
+    term.sendText('/usr/bin/env ' + cmdl.concat(cmds).join(' '));
     term.show();
     return term;
 }
