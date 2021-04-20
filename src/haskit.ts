@@ -12,16 +12,16 @@ function createEdhTerminal(cmds: string[]): vscode.Terminal {
     const cmdl = debugEdh
         ? ['EDH_LOG_LEVEL=DEBUG',
             'epm', 'x']
-        : [
-            'epm', 'x'];
+        : ['epm', 'x'];
 
     const term = vscode.window.createTerminal(
         EdhTermPrefix + cmds.join(' '),
-        // shellPath/shellArgs not supported by Theia yet
-        // "/usr/bin/env", cmdl.concat(cmds),
+        // Note: shellPath/shellArgs not supported by Theia yet,
+        // this won't work on Eclipse Thiea
+        "/usr/bin/env", cmdl.concat(cmds),
     );
-    // workaround https://github.com/eclipse-theia/theia/issues/6574
-    term.sendText('/usr/bin/env ' + cmdl.concat(cmds).join(' '));
+    // for workaround: https://github.com/eclipse-theia/theia/issues/6574
+    // term.sendText('/usr/bin/env ' + cmdl.concat(cmds).join(' '));
     term.show();
     return term;
 }
