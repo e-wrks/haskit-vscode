@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 
 import {
     newEdhTerminal,
-    EdhCodelensProvider, sendEdhSourceToTerminal,
+    EdhCodeLensProvider, sendEdhSourceToTerminal,
 } from "./haskit";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -10,7 +10,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand(
         "edh.NewEdhTermSession", newEdhTerminal));
 
-    const codelensProvider = new EdhCodelensProvider();
+    const codelensProvider = new EdhCodeLensProvider();
     vscode.languages.registerCodeLensProvider({
         "language": "edh"
     }, codelensProvider);

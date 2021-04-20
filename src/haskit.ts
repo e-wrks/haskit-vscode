@@ -128,7 +128,7 @@ class OptionCmd implements vscode.QuickPickItem {
 }
 
 
-export class EdhCodelensProvider implements vscode.CodeLensProvider {
+export class EdhCodeLensProvider implements vscode.CodeLensProvider {
 
     private _onDidChangeCodeLenses: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
     public readonly onDidChangeCodeLenses: vscode.Event<void> = this._onDidChangeCodeLenses.event;
